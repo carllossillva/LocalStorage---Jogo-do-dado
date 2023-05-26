@@ -8,12 +8,7 @@ const tabelaResultadoCorpoElement = document.getElementById('tabelaResultadoCorp
 
 const botaoReiniciarElement = document.getElementById('botaoReiniciar');
 
-const modalElement = document.getElementById('modal');
-const modalResultadoElement = document.getElementById('modalResultado');
-
-const closeElement = document.getElementsByClassName('close')[0];
-const modalResultadoFinalElement = document.getElementsByClassName('modalResultadoFinal');
-const modal2Element = document.getElementById('modal2');
+const resultadoPartidaElement = document.getElementById('resultadoPartida');
 
 let rodada = 1;
 let resultado1 = 0;
@@ -60,7 +55,7 @@ function atualizarInterface() {
   resultado1Element.innerText = resultado1;
   resultado3Element.innerText = resultado3;
   botao3Element.disabled = jogador1Ativo;
-  botaoReiniciarElement.disabled = !jogador1Ativo; // Desabilitar o botão de reiniciar se jogador1Ativo for falso
+  botaoReiniciarElement.disabled = jogador1Ativo && rodada <= 10; // Desabilitar o botão de reiniciar se jogador1Ativo for verdadeiro e a rodada for menor ou igual a 10
 }
 
 // Função para reiniciar o jogo
@@ -86,8 +81,6 @@ function verificarVencedor() {
         ? 'Jogador 2'
         : 'Empate';
     const resultadoText = `Ganhador da rodada: ${ganhador}`;
-    modalResultadoElement.textContent = resultadoText;
-    modalElement.style.display = 'block';
 
     const row = document.createElement('tr');
     const rodadaCell = document.createElement('td');
@@ -107,51 +100,59 @@ function verificarVencedor() {
     // Verificar se é a décima rodada
     if (rodada > 10) {
       exibirVencedorPartida();
+    } else {
+      atualizarInterface();
     }
   }
 }
 
+// Função para exibir o vencedor da partida após a décima rodada
+function exibirVencedorPartida() {
+  vitoriasJogador1 = 0;
+  vitoriasJogador2 = 0;
+
+  const rows = tabelaResultadoCorpoElement.getElementsByTagName('tr');
+  for (let i = 0; i < rows.length; i++) {
+    const ganhador = rows[i].getElementsByTagName('td')[2].textContent;
+    if (ganhador === 'Jogador 1') {
+      vitoriasJogador1++;
+    } else if (ganhador === 'Jogador 2') {
+      vitoriasJogador2++;
+    }
+  }
+
+  const vencedorPartida = vitoriasJogador1 > vitoriasJogador2 ? 'Jogador 1' : vitoriasJogador1 < vitoriasJogador2 ? 'Jogador 2' : 'Empate';
+  const resultadoPartidaText = `Vencedor da partida: ${vencedorPartida}`;
+  resultadoPartidaElement.textContent = resultadoPartidaText;
+  botaoReiniciarElement.disabled = false; // Habilitar o botão de reiniciar
+}
 
 botaoReiniciarElement.addEventListener('click', reiniciarJogo);
 
 botao1Element.addEventListener('click', () => {
-    if (jogador1Ativo) {
-      resultado1 = Math.floor(Math.random() * 6) + 1;
-      resultado1Element.innerText = resultado1;
-      jogador1Ativo = false;
-      botao1Element.disabled = true; // Desabilitar o botão 1
-      botao3Element.removeAttribute('disabled');
-      botaoReiniciarElement.disabled = true; // Desabilitar o botão de reiniciar
-      salvarEstadoJogo();
-      atualizarInterface();
-    }
-  });
-  
-  botao3Element.addEventListener('click', () => {
-    if (!jogador1Ativo) {
-      resultado3 = Math.floor(Math.random() * 6) + 1;
-      resultado3Element.innerText = resultado3;
-      jogador1Ativo = true;
-      botao1Element.disabled = false; // Habilitar o botão 1
-      botao3Element.setAttribute('disabled', 'true');
-      verificarVencedor();
-      botaoReiniciarElement.disabled = false; // Habilitar o botão de reiniciar
-      salvarEstadoJogo();
-      atualizarInterface();
-    }
-  });
-  
-
-closeElement.addEventListener('click', () => {
-  modalElement.style.display = 'none';
-});
-
-window.addEventListener('click', (event) => {
-  if (event.target == modalElement) {
-    modalElement.style.display = 'none';
+  if (jogador1Ativo) {
+    resultado1 = Math.floor(Math.random() * 6) + 1;
+    resultado1Element.innerText = resultado1;
+    jogador1Ativo = false;
+    botao1Element.disabled = true; // Desabilitar o botão 1
+    botao3Element.removeAttribute('disabled');
+    botaoReiniciarElement.disabled = true; // Desabilitar o botão de reiniciar
+    salvarEstadoJogo();
+    atualizarInterface();
   }
 });
 
+botao3Element.addEventListener('click', () => {
+  if (!jogador1Ativo) {
+    resultado3 = Math.floor(Math.random() * 6) + 1;
+    resultado3Element.innerText = resultado3;
+    jogador1Ativo = true;
+    botao1Element.disabled = false; // Habilitar o botão 1
+    botao3Element.setAttribute('disabled', 'true');
+    verificarVencedor();
+    salvarEstadoJogo();
+  }
+});
 
 // Carregar os valores do localStorage ao carregar a página
 window.addEventListener('load', () => {
@@ -159,5 +160,3 @@ window.addEventListener('load', () => {
   carregarTabelaResultado();
   atualizarInterface();
 });
-
-
